@@ -8,6 +8,7 @@ package
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.text.TextField;
+    import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
     import flash.ui.Keyboard;
     
@@ -17,6 +18,8 @@ package
     import royalshield.animators.utils.FrameDuration;
     import royalshield.combat.AreaCombat;
     import royalshield.core.RoyalShield;
+    import royalshield.entities.creatures.Monster;
+    import royalshield.entities.creatures.MonsterType;
     import royalshield.entities.creatures.NPC;
     import royalshield.entities.items.Ground;
     import royalshield.entities.items.Item;
@@ -37,6 +40,7 @@ package
         
         private var m_royalShield:RoyalShield;
         private var m_textField:TextField;
+        private var m_textFieldPosition:TextField;
         
         //--------------------------------------------------------------------------
         // CONSTRUCTOR
@@ -67,7 +71,7 @@ package
             m_royalShield.display.x = 75;
             m_royalShield.display.scale = 1.5;
             m_royalShield.display.addEventListener(MouseEvent.CLICK, gameDisplayMouseClickHandler);
-            m_royalShield.world.map.onPositionChanged.add(testSignal);
+            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
             addChild(m_royalShield.display);
             
             m_textField = new TextField();
@@ -81,6 +85,13 @@ package
                                "G: grid";
             addChild(m_textField);
             
+            m_textFieldPosition = new TextField();
+            m_textFieldPosition.autoSize = TextFieldAutoSize.CENTER;
+            m_textFieldPosition.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_textFieldPosition.x = m_royalShield.display.width - m_textFieldPosition.width;
+            m_textFieldPosition.y = m_royalShield.display.y + m_royalShield.display.height + 10;
+            addChild(m_textFieldPosition);
+            
             addChild(new Stats());
             
             test();
@@ -88,11 +99,6 @@ package
             // TODO: temporary way to get a loop.
             addEventListener(Event.ENTER_FRAME, enterFrameHandler);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
-        }
-        
-        private function testSignal(x:uint, y:uint, z:uint):void
-        {
-            //trace(x, y, z);
         }
         
         public function test():void
@@ -176,14 +182,22 @@ package
             
             var outfit:Outfit = new Outfit(type);
             m_royalShield.player.outfit = outfit;
+            m_royalShield.player.onWalkComplete.add(playerWalkComplete);
             m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
             
             // Adds a NPC
             
-            var npc:NPC = new NPC(1, "Npc");
+            var npc:NPC = new NPC("Npc");
             npc.outfit = new Outfit(type);
             if (m_royalShield.world.addCreature(npc, 12, 14, 0))
                 npc.setCreatureFocus(m_royalShield.player);
+            
+            // Adds a Monster
+            var monsterType:MonsterType = new MonsterType();
+            monsterType.name = "Monster";
+            var monster:Monster = new Monster(monsterType);
+            monster.outfit = new Outfit(type);
+            m_royalShield.world.addCreature(monster, 20, 25, 0);
         }
         
         //--------------------------------------
@@ -259,6 +273,16 @@ package
             }
         }
         
+        private function playerWalkComplete():void
+        {
+            //trace("Main.playerWalkComplete()");
+        }
+        
+        private function mapPositionChanged(x:uint, y:uint, z:uint):void
+        {
+            m_textFieldPosition.text = "(x="+x+", y="+y+", z="+z+")";
+        }
+        
         //--------------------------------------
         // Event Handlers
         //--------------------------------------
@@ -309,6 +333,10 @@ package
                 
                 case Keyboard.V:
                     testMissile();
+                    break;
+                
+                case Keyboard.T:
+                    m_royalShield.player.stopWalk();
                     break;
             }
         }
