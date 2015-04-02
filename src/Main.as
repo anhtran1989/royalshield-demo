@@ -130,7 +130,8 @@ package
             type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new TREE_TEXTURE).bitmapData);
             
             var tree:Item = new Item(0, "tree");
-            tree.isSolid = true;
+            tree.solidMap = Vector.<uint>([1]);
+            tree.solidMapColumns = 1;
             tree.graphic = new Graphic(type);
             m_royalShield.world.addItem(tree, 10, 10, 0);
             m_royalShield.world.addItem(tree, 15, 15, 0);
@@ -146,7 +147,8 @@ package
             type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new STONE_TEXTURE).bitmapData);
             
             var stone:Item = new Item(0, "stone");
-            stone.isSolid = true;
+            stone.solidMap = Vector.<uint>([1, 1]);
+            stone.solidMapColumns = 1;
             stone.graphic = new Graphic(type);
             m_royalShield.world.addItem(stone, 17, 14, 0);
             
