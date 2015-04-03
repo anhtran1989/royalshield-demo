@@ -41,6 +41,7 @@ package
         private var m_royalShield:RoyalShield;
         private var m_textField:TextField;
         private var m_textFieldPosition:TextField;
+        private var oblique:Boolean = true;
         
         //--------------------------------------------------------------------------
         // CONSTRUCTOR
@@ -82,7 +83,8 @@ package
             m_textField.text = "X: magic effect\n" +
                                "C: magic effect area\n" +
                                "V: missile effect\n" +
-                               "G: grid";
+                               "G: grid\n" +
+                               "SPACE: change tileset";
             addChild(m_textField);
             
             m_textFieldPosition = new TextField();
@@ -94,15 +96,17 @@ package
             
             addChild(new Stats());
             
-            test();
+            test1();
             
             // TODO: temporary way to get a loop.
             addEventListener(Event.ENTER_FRAME, enterFrameHandler);
             stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
         }
         
-        public function test():void
+        public function test1():void
         {
+            m_royalShield.world.clear();
+            
             // Adds the ground
             
             var type:GraphicType = new GraphicType();
@@ -113,10 +117,8 @@ package
             var ground:Ground = new Ground(0, "ground", 100);
             ground.graphic = new Graphic(type);
             
-            for (var x:uint = 0; x <= 50; x++)
-            {
-                for (var y:uint = 0; y <= 50; y++)
-                {
+            for (var x:uint = 0; x <= 50; x++) {
+                for (var y:uint = 0; y <= 50; y++) {
                     m_royalShield.world.map.setTile(x, y, 0);
                     m_royalShield.world.addItem(ground, x, y, 0);
                 }
@@ -200,6 +202,65 @@ package
             var monster:Monster = new Monster(monsterType);
             monster.outfit = new Outfit(type);
             m_royalShield.world.addCreature(monster, 20, 25, 0);
+        }
+        
+        public function test2():void
+        {
+            m_royalShield.world.clear();
+            
+            // Adds the ground
+            
+            var type:GraphicType = new GraphicType();
+            type.patternX = 2;
+            type.patternY = 3;
+            type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new GROUND_TEXTURE2).bitmapData);
+            
+            var ground:Ground = new Ground(0, "ground", 100);
+            ground.graphic = new Graphic(type);
+            
+            for (var x:uint = 0; x <= 50; x++) {
+                for (var y:uint = 0; y <= 50; y++) {
+                    m_royalShield.world.map.setTile(x, y, 0);
+                    m_royalShield.world.addItem(ground, x, y, 0);
+                }
+            }
+            
+            // Adds the tree
+            
+            type = new GraphicType();
+            type.height = 2;
+            type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new TREE_TEXTURE2).bitmapData);
+            
+            var tree:Item = new Item(0, "tree");
+            tree.solidMap = Vector.<uint>([1]);
+            tree.solidMapColumns = 1;
+            tree.graphic = new Graphic(type);
+            for (var i:uint = 0; i < 150; i++)
+                m_royalShield.world.addItem(tree, Math.random() * 50, Math.random() * 50, 0);
+            
+            // Adds the bush
+            
+            type = new GraphicType();
+            type.patternX = 2;
+            type.patternY = 3;
+            type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new BUSH).bitmapData);
+            
+            var bush:Item = new Item(0, "bush");
+            bush.graphic = new Graphic(type);
+            for (i = 0; i < 200; i++)
+                m_royalShield.world.addItem(bush, Math.random() * 50, Math.random() * 50, 0);
+            
+            // Adds the player
+            
+            type = new GraphicType();
+            type.patternX = 4;
+            type.frames = 3;
+            type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new OUTFIT_TEXTURE2).bitmapData);
+            
+            var outfit:Outfit = new Outfit(type);
+            m_royalShield.player.outfit = outfit;
+            m_royalShield.player.onWalkComplete.add(playerWalkComplete);
+            m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
         }
         
         //--------------------------------------
@@ -340,6 +401,14 @@ package
                 case Keyboard.T:
                     m_royalShield.player.stopWalk();
                     break;
+                
+                case Keyboard.SPACE:
+                    oblique = !oblique;
+                    if (oblique)
+                        test1();
+                    else
+                        test2();
+                    break;
             }
         }
         
@@ -358,14 +427,23 @@ package
         [Embed(source="../assets/ground.png", mimeType="image/png")]
         public static const GROUND_TEXTURE:Class;
         
+        [Embed(source="../assets/ground2.png", mimeType="image/png")]
+        public static const GROUND_TEXTURE2:Class;
+        
         [Embed(source="../assets/tree.png", mimeType="image/png")]
         public static const TREE_TEXTURE:Class;
+        
+        [Embed(source="../assets/tree2.png", mimeType="image/png")]
+        public static const TREE_TEXTURE2:Class;
         
         [Embed(source="../assets/stone.png", mimeType="image/png")]
         public static const STONE_TEXTURE:Class;
         
         [Embed(source="../assets/outfit.png", mimeType="image/png")]
         public static const OUTFIT_TEXTURE:Class;
+        
+        [Embed(source="../assets/outfit2.png", mimeType="image/png")]
+        public static const OUTFIT_TEXTURE2:Class;
         
         [Embed(source="../assets/camp_fire.png", mimeType="image/png")]
         public static const CAMP_FIRE:Class;
@@ -375,5 +453,8 @@ package
         
         [Embed(source="../assets/missile.png", mimeType="image/png")]
         public static const MISSILE_TEXTURE:Class;
+        
+        [Embed(source="../assets/bush.png", mimeType="image/png")]
+        public static const BUSH:Class;
     }
 }
