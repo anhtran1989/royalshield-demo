@@ -17,6 +17,7 @@ package
     import royalshield.animators.utils.FrameDuration;
     import royalshield.combat.AreaCombat;
     import royalshield.core.RoyalShield;
+    import royalshield.entities.creatures.Creature;
     import royalshield.entities.creatures.Monster;
     import royalshield.entities.creatures.MonsterType;
     import royalshield.entities.creatures.NPC;
@@ -42,7 +43,9 @@ package
         private var m_textField:TextField;
         private var m_positionTextField:TextField;
         private var m_statsTextField:TextField;
-        private var oblique:Boolean = true;
+        private var m_oblique:Boolean = true;
+        
+        private var m_monster:Monster;
         
         //--------------------------------------------------------------------------
         // CONSTRUCTOR
@@ -73,12 +76,12 @@ package
             m_royalShield.display.x = 75;
             m_royalShield.display.scale = 1.5;
             m_royalShield.display.addEventListener(MouseEvent.CLICK, gameDisplayMouseClickHandler);
-            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
             addChild(m_royalShield.display);
             
             m_textField = new TextField();
             m_textField.width = 300;
-            m_textField.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_textField.height = 300;
+            m_textField.defaultTextFormat = new TextFormat("Arial", 10, 0xFFFFFF, true);
             m_textField.x = m_royalShield.display.x;
             m_textField.y = m_royalShield.display.y + m_royalShield.display.height + 10;
             m_textField.text = "X: magic effect\n" +
@@ -93,7 +96,7 @@ package
             m_positionTextField = new TextField();
             m_positionTextField.width = 150;
             m_positionTextField.height = 20;
-            m_positionTextField.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_positionTextField.defaultTextFormat = new TextFormat("Arial", 10, 0xFFFFFF, true);
             m_positionTextField.x = m_royalShield.display.width - m_positionTextField.width;
             m_positionTextField.y = m_royalShield.display.y + m_royalShield.display.height + 10;
             addChild(m_positionTextField);
@@ -102,8 +105,8 @@ package
             m_statsTextField.width = 150;
             m_statsTextField.height = 20;
             m_statsTextField.x = m_positionTextField.x;
-            m_statsTextField.y = m_positionTextField.y + m_positionTextField.height + 10;
-            m_statsTextField.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_statsTextField.y = m_positionTextField.y + m_positionTextField.height + 5;
+            m_statsTextField.defaultTextFormat = new TextFormat("Arial", 10, 0xFFFFFF, true);
             m_statsTextField.text = "Level: 1";
             addChild(m_statsTextField);
             
@@ -120,6 +123,9 @@ package
         {
             m_royalShield.world.clear();
             m_royalShield.player.destroy();
+            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
+            m_royalShield.world.onCreatureAdded.add(onCreatureAddedCallback);
+            m_royalShield.world.onCreatureMoved.add(onCreatureMoveCallback);
             
             // Adds the ground
             
@@ -212,17 +218,29 @@ package
                 npc.setCreatureFocus(m_royalShield.player);
             
             // Adds a Monster
+            
+            type = new GraphicType();
+            type.width = 1;
+            type.height = 1;
+            type.patternX = 4;
+            type.frames = 3;
+            type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new MONSTER).bitmapData);
+            
             var monsterType:MonsterType = new MonsterType();
             monsterType.name = "Monster";
-            var monster:Monster = new Monster(monsterType);
-            monster.outfit = new Outfit(type);
-            m_royalShield.world.addCreature(monster, 20, 25, 0);
+            m_monster = new Monster(monsterType);
+            m_monster.outfit = new Outfit(type);
+            m_royalShield.world.addCreature(m_monster, 20, 25, 0);
         }
         
         public function test2():void
         {
             m_royalShield.world.clear();
             m_royalShield.player.destroy();
+            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
+            m_royalShield.world.onCreatureAdded.add(onCreatureAddedCallback);
+            m_royalShield.world.onCreatureMoved.add(onCreatureMoveCallback);
+            m_monster = null;
             
             // Adds the ground
             
@@ -375,6 +393,24 @@ package
             m_positionTextField.text = "Position: x="+x+", y="+y+", z="+z;
         }
         
+        private function onCreatureAddedCallback(creature:Creature):void
+        {
+            if (creature == m_royalShield.player)
+                m_royalShield.world.map.setPosition(creature.tile.x, creature.tile.y, creature.tile.z);
+        }
+        
+        private function onCreatureMoveCallback(creature:Creature):void
+        {
+            if (creature == m_royalShield.player) {
+                m_royalShield.world.map.setPosition(creature.tile.x, creature.tile.y, creature.tile.z);
+                
+                if (m_monster) {
+                    m_monster.setFollowCreature(creature);
+                    m_monster.goToFollowCreature();
+                }
+            }
+        }
+        
         //--------------------------------------
         // Event Handlers
         //--------------------------------------
@@ -440,8 +476,8 @@ package
                     break;
                 
                 case Keyboard.SPACE:
-                    oblique = !oblique;
-                    if (oblique)
+                    m_oblique = !m_oblique;
+                    if (m_oblique)
                         test1();
                     else
                         test2();
@@ -493,5 +529,8 @@ package
         
         [Embed(source="../assets/bush.png", mimeType="image/png")]
         public static const BUSH:Class;
+        
+        [Embed(source="../assets/monster.png", mimeType="image/png")]
+        public static const MONSTER:Class;
     }
 }
