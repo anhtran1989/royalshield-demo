@@ -8,7 +8,6 @@ package
     import flash.events.KeyboardEvent;
     import flash.events.MouseEvent;
     import flash.text.TextField;
-    import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
     import flash.ui.Keyboard;
     
@@ -40,7 +39,8 @@ package
         
         private var m_royalShield:RoyalShield;
         private var m_textField:TextField;
-        private var m_textFieldPosition:TextField;
+        private var m_positionTextField:TextField;
+        private var m_statsTextField:TextField;
         private var oblique:Boolean = true;
         
         //--------------------------------------------------------------------------
@@ -84,15 +84,27 @@ package
                                "C: magic effect area\n" +
                                "V: missile effect\n" +
                                "G: grid\n" +
+                               "Page Up: level +\n" +
+                               "Page Down: level -\n" +
                                "SPACE: change tileset";
             addChild(m_textField);
             
-            m_textFieldPosition = new TextField();
-            m_textFieldPosition.autoSize = TextFieldAutoSize.CENTER;
-            m_textFieldPosition.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
-            m_textFieldPosition.x = m_royalShield.display.width - m_textFieldPosition.width;
-            m_textFieldPosition.y = m_royalShield.display.y + m_royalShield.display.height + 10;
-            addChild(m_textFieldPosition);
+            m_positionTextField = new TextField();
+            m_positionTextField.width = 150;
+            m_positionTextField.height = 20;
+            m_positionTextField.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_positionTextField.x = m_royalShield.display.width - m_positionTextField.width;
+            m_positionTextField.y = m_royalShield.display.y + m_royalShield.display.height + 10;
+            addChild(m_positionTextField);
+            
+            m_statsTextField = new TextField();
+            m_statsTextField.width = 150;
+            m_statsTextField.height = 20;
+            m_statsTextField.x = m_positionTextField.x;
+            m_statsTextField.y = m_positionTextField.y + m_positionTextField.height + 10;
+            m_statsTextField.defaultTextFormat = new TextFormat("Arial", 12, 0xFFFFFF, true);
+            m_statsTextField.text = "Level: 1";
+            addChild(m_statsTextField);
             
             addChild(new Stats());
             
@@ -106,6 +118,7 @@ package
         public function test1():void
         {
             m_royalShield.world.clear();
+            m_royalShield.player.destroy();
             
             // Adds the ground
             
@@ -186,7 +199,8 @@ package
             
             var outfit:Outfit = new Outfit(type);
             m_royalShield.player.outfit = outfit;
-            m_royalShield.player.onWalkComplete.add(playerWalkComplete);
+            m_royalShield.player.onWalkCompleted.add(playerWalkComplete);
+            m_royalShield.player.onLevelChanged.add(playerLavelChanged);
             m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
             
             // Adds a NPC
@@ -207,6 +221,7 @@ package
         public function test2():void
         {
             m_royalShield.world.clear();
+            m_royalShield.player.destroy();
             
             // Adds the ground
             
@@ -259,7 +274,8 @@ package
             
             var outfit:Outfit = new Outfit(type);
             m_royalShield.player.outfit = outfit;
-            m_royalShield.player.onWalkComplete.add(playerWalkComplete);
+            m_royalShield.player.onWalkCompleted.add(playerWalkComplete);
+            m_royalShield.player.onLevelChanged.add(playerLavelChanged);
             m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
         }
         
@@ -341,9 +357,14 @@ package
             //trace("Main.playerWalkComplete()");
         }
         
+        private function playerLavelChanged(oldLevel:uint, newLevel):void
+        {
+            m_statsTextField.text = "Level: " + newLevel;
+        }
+        
         private function mapPositionChanged(x:uint, y:uint, z:uint):void
         {
-            m_textFieldPosition.text = "(x="+x+", y="+y+", z="+z+")";
+            m_positionTextField.text = "Position: x="+x+", y="+y+", z="+z;
         }
         
         //--------------------------------------
@@ -400,6 +421,14 @@ package
                 
                 case Keyboard.T:
                     m_royalShield.player.stopWalk();
+                    break;
+                
+                case Keyboard.PAGE_UP:
+                    m_royalShield.player.level = Math.min(m_royalShield.player.level + 1, 800);
+                    break;
+                
+                case Keyboard.PAGE_DOWN:
+                    m_royalShield.player.level = Math.max(m_royalShield.player.level - 1, 0);
                     break;
                 
                 case Keyboard.SPACE:
