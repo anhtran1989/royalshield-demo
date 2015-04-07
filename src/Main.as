@@ -29,6 +29,7 @@ package
     import royalshield.graphics.MagicEffect;
     import royalshield.graphics.Missile;
     import royalshield.graphics.Outfit;
+    import royalshield.graphics.TextualEffect;
     
     [SWF(width="800", height="600", backgroundColor="0x550088", frameRate="60")]
     public class Main extends Sprite
@@ -357,8 +358,15 @@ package
             //trace("Main.playerWalkComplete()");
         }
         
-        private function playerLavelChanged(oldLevel:uint, newLevel):void
+        private function playerLavelChanged(oldLevel:uint, newLevel:uint):void
         {
+            var effect:TextualEffect = new TextualEffect();
+            if (oldLevel < newLevel)
+                effect.setProperties(0x00FF00, newLevel.toString());
+            else
+                effect.setProperties(0xFF0000, newLevel.toString());
+            
+            m_royalShield.world.addEffect(effect, m_royalShield.player.tile.x, m_royalShield.player.tile.y, m_royalShield.player.tile.z);
             m_statsTextField.text = "Level: " + newLevel;
         }
         
@@ -424,11 +432,11 @@ package
                     break;
                 
                 case Keyboard.PAGE_UP:
-                    m_royalShield.player.level = Math.min(m_royalShield.player.level + 1, 800);
+                    m_royalShield.player.level = Math.min(m_royalShield.player.level + 1, 500);
                     break;
                 
                 case Keyboard.PAGE_DOWN:
-                    m_royalShield.player.level = Math.max(m_royalShield.player.level - 1, 0);
+                    m_royalShield.player.level = Math.max(m_royalShield.player.level - 1, 1);
                     break;
                 
                 case Keyboard.SPACE:
