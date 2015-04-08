@@ -123,7 +123,7 @@ package
         {
             m_royalShield.world.clear();
             m_royalShield.player.destroy();
-            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
+            m_royalShield.world.map.onPositionChanged.add(onMapPositionChangedCallback);
             m_royalShield.world.onCreatureAdded.add(onCreatureAddedCallback);
             m_royalShield.world.onCreatureMoved.add(onCreatureMoveCallback);
             
@@ -207,7 +207,7 @@ package
             var outfit:Outfit = new Outfit(type);
             m_royalShield.player.outfit = outfit;
             m_royalShield.player.onWalkCompleted.add(playerWalkComplete);
-            m_royalShield.player.onLevelChanged.add(playerLavelChanged);
+            m_royalShield.player.onLevelChanged.add(oPlayerLevelChangedCallback);
             m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
             
             // Adds a NPC
@@ -237,7 +237,7 @@ package
         {
             m_royalShield.world.clear();
             m_royalShield.player.destroy();
-            m_royalShield.world.map.onPositionChanged.add(mapPositionChanged);
+            m_royalShield.world.map.onPositionChanged.add(onMapPositionChangedCallback);
             m_royalShield.world.onCreatureAdded.add(onCreatureAddedCallback);
             m_royalShield.world.onCreatureMoved.add(onCreatureMoveCallback);
             m_monster = null;
@@ -294,7 +294,7 @@ package
             var outfit:Outfit = new Outfit(type);
             m_royalShield.player.outfit = outfit;
             m_royalShield.player.onWalkCompleted.add(playerWalkComplete);
-            m_royalShield.player.onLevelChanged.add(playerLavelChanged);
+            m_royalShield.player.onLevelChanged.add(oPlayerLevelChangedCallback);
             m_royalShield.world.addCreature(m_royalShield.player, 19, 14, 0);
         }
         
@@ -310,8 +310,6 @@ package
             
             var animator:Animator = new Animator(durations.length, 1, 0, durations);
             var type:GraphicType = new GraphicType();
-            type.width = 1;
-            type.height = 1;
             type.frames = durations.length;
             type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new ME_EXPLOSION).bitmapData);
             type.animator = animator;
@@ -321,7 +319,8 @@ package
         private function testMagicEffect():void
         {
             var effect:MagicEffect = createMagicEffet();
-            m_royalShield.world.addEffect(effect, m_royalShield.player.tile.x, m_royalShield.player.tile.y, m_royalShield.player.tile.z);
+            var pos:Position = m_royalShield.player.position;
+            m_royalShield.world.addEffect(effect, pos.x, pos.y, pos.z);
         }
         
         private function testArea():void
@@ -329,13 +328,8 @@ package
             var area:AreaCombat = new AreaCombat();
             area.setupAreaByRadius(5); // sets the effect area
             
-            var center:Position = new Position();
-            center.x = m_royalShield.player.tile.x;
-            center.y = m_royalShield.player.tile.y;
-            center.z = m_royalShield.player.tile.z;
-            var target:Position = center.clone();
             var positions:Vector.<Position> = new Vector.<Position>();
-            if (area.getList(center, target, positions)) {
+            if (area.getList(m_royalShield.player.position, m_royalShield.player.position, positions)) {
                 for (var i:uint = 0; i < positions.length; i++) {
                     var effect:MagicEffect = createMagicEffet();
                     var pos:Position = positions[i];
@@ -351,9 +345,7 @@ package
             type.patternY = 3;
             type.spriteSheet = m_royalShield.assets.getSpriteSheet(type, Bitmap(new MISSILE_TEXTURE).bitmapData);
             
-            var x:uint = m_royalShield.player.tile.x;
-            var y:uint = m_royalShield.player.tile.y;
-            var z:uint = m_royalShield.player.tile.z;
+            var pos:Position = m_royalShield.player.position;
             
             var positions:Array = [];
             positions[positions.length] = {x:-5, y:-5}
@@ -366,8 +358,8 @@ package
             positions[positions.length] = {x:0, y:5}
                 
             for (var i:uint = 0; i < positions.length; i++) {
-                var missile:Missile = new Missile(type, x, y, x + positions[i].x, y + positions[i].y);
-                m_royalShield.world.addEffect(missile, x, y, z);
+                var missile:Missile = new Missile(type, pos.x, pos.y, pos.x + positions[i].x, pos.y + positions[i].y);
+                m_royalShield.world.addEffect(missile, pos.x, pos.y, pos.z);
             }
         }
         
@@ -376,7 +368,7 @@ package
             //trace("Main.playerWalkComplete()");
         }
         
-        private function playerLavelChanged(oldLevel:uint, newLevel:uint):void
+        private function oPlayerLevelChangedCallback(oldLevel:uint, newLevel:uint):void
         {
             var effect:TextualEffect = new TextualEffect();
             if (oldLevel < newLevel)
@@ -384,11 +376,12 @@ package
             else
                 effect.setProperties(0xFF0000, newLevel.toString());
             
-            m_royalShield.world.addEffect(effect, m_royalShield.player.tile.x, m_royalShield.player.tile.y, m_royalShield.player.tile.z);
+            var pos:Position = m_royalShield.player.position;
+            m_royalShield.world.addEffect(effect, pos.x, pos.y, pos.z);
             m_statsTextField.text = "Level: " + newLevel;
         }
         
-        private function mapPositionChanged(x:uint, y:uint, z:uint):void
+        private function onMapPositionChangedCallback(x:uint, y:uint, z:uint):void
         {
             m_positionTextField.text = "Position: x="+x+", y="+y+", z="+z;
         }
@@ -396,13 +389,13 @@ package
         private function onCreatureAddedCallback(creature:Creature):void
         {
             if (creature == m_royalShield.player)
-                m_royalShield.world.map.setPosition(creature.tile.x, creature.tile.y, creature.tile.z);
+                m_royalShield.world.map.setPosition(creature.position.x, creature.position.y, creature.position.z);
         }
         
         private function onCreatureMoveCallback(creature:Creature):void
         {
             if (creature == m_royalShield.player) {
-                m_royalShield.world.map.setPosition(creature.tile.x, creature.tile.y, creature.tile.z);
+                m_royalShield.world.map.setPosition(creature.position.x, creature.position.y, creature.position.z);
                 
                 if (m_monster) {
                     m_monster.setFollowCreature(creature);
